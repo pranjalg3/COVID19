@@ -1,0 +1,84 @@
+--- 
+authors: 
+  ? "David Ardia"
+  : 
+    href: "https://ardiad.github.io"
+  ? "Emanuele Guidotti"
+  : 
+    href: "https://guidotti.dev"
+home: 
+  description: "Unified dataset for a better understanding of COVID-19."
+  title: "COVID-19 Data Hub"
+navbar: 
+  components: 
+    articles: ~
+    reference: ~
+    news: ~
+    data: 
+      menu: 
+        - 
+          href: articles/data.html
+          text: Download
+        - 
+          href: articles/doc/data.html
+          text: Documentation
+        -
+          href: articles/usage.html
+          text: Use Cases
+        - 
+          href: news/index.html
+          text: Changelog
+      text: Data
+    python: 
+      href: articles/api/python.html
+      text: Python
+    r: 
+      href: articles/api/r.html
+      text: R
+    node:
+      href: articles/api/node.html
+      text: Node.js
+    julia:
+      href: articles/api/julia.html
+      text: Julia
+    matlab:
+      href: articles/api/matlab.html
+      text: MATLAB
+    scala:
+      href: articles/api/scala.html
+      text: Scala
+    excel:
+      href: articles/api/excel.html
+      text: Excel
+    developers: 
+      menu: 
+        - 
+          href: https://github.com/covid19datahub/COVID19/
+          text: GitHub
+        - 
+          href: reference/index.html
+          text: Documentation
+        - 
+          href: articles/contributors.html
+          text: Acknowledgments
+      text: Contributors
+  structure: 
+    left: 
+      - home
+      - data
+      - developers
+      - r
+      - python
+      - matlab
+      - julia
+      - node
+      - scala
+      - excel
+    right: 
+      - github
+template: 
+  params: 
+    ganalytics: UA-163902432-1
+    bootswatch: cosmo
+title: "COVID-19 Data Hub"
+url: "https://covid19datahub.io"

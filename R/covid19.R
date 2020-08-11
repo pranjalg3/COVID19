@@ -1,70 +1,65 @@
+#' COVID-19 Data Hub
 #'
-#' Coronavirus COVID-19 (2019-nCoV) Epidemic Datasets
+#' Unified datasets for a better understanding of COVID-19.
 #'
-#' Unified tidy format datasets of the 2019 Novel Coronavirus COVID-19 (2019-nCoV) epidemic across several sources.
-#' The data are downloaded in real-time, cleaned and matched with exogenous variables.
-#' Vintage databases are also supported.
-#'
-#' @param ISO vector of ISO codes to retrieve (alpha-2, alpha-3 or numeric). Each country is identified by one of its \href{https://github.com/covid19datahub/COVID19/blob/master/inst/extdata/db/ISO.csv}{ISO codes}
+#' @param country vector of country names or \href{https://github.com/covid19datahub/COVID19/blob/master/inst/extdata/db/ISO.csv}{ISO codes} (alpha-2, alpha-3 or numeric).
 #' @param level integer. Granularity level. 1: country-level data. 2: state-level data. 3: city-level data.
 #' @param start the start date of the period of interest.
 #' @param end the end date of the period of interest.
-#' @param vintage logical. Retrieve the snapshot of the dataset at the \code{end} date instead of using the latest version? Default \code{FALSE}.
+#' @param vintage logical. Retrieve the snapshot of the dataset that was generated at the \code{end} date instead of using the latest version. Default \code{FALSE}.
 #' @param raw logical. Skip data cleaning? Default \code{FALSE}. See details.
 #' @param cache logical. Memory caching? Significantly improves performance on successive calls. Default \code{TRUE}.
+#' @param verbose logical. Print data sources? Default \code{TRUE}.
 #'
-#' @details \href{https://github.com/covid19datahub/COVID19}{Collection methodology and details}
+#' @details 
+#' The raw data are cleaned by filling missing dates with \code{NA} values. 
+#' This ensures that all locations share the same grid of dates and no single day is skipped. 
+#' Then, \code{NA} values are replaced with the previous non-\code{NA} value or \code{0}.
 #'
-#' @return \href{https://github.com/covid19datahub/COVID19#dataset}{Grouped \code{tibble} (\code{data.frame})}
+#' @return Grouped \code{tibble} (\code{data.frame})
 #'
 #' @examples
 #' \dontrun{
 #'
 #' # Worldwide data by country
-#' covid19()
+#' x <- covid19()
 #'
 #' # Worldwide data by state
-#' covid19(level = 2)
+#' x <- covid19(level = 2)
 #'
-#' # US data by state
-#' covid19("USA", level = 2)
-#'
-#' # Swiss data by state (cantons)
-#' covid19("CHE", level = 2)
-#'
-#' # Italian data by state (regions)
-#' covid19("ITA", level = 2)
-#'
-#' # Italian and US data by city
-#' covid19(c("ITA","USA"), level = 3)
+#' # Specific country data by city
+#' x <- covid19(c("Italy","US"), level = 3)
+#' 
+#' # Data sources
+#' s <- attr(x, "src")
 #' }
 #'
-#' @source \href{https://github.com/covid19datahub/COVID19#data-sources}{Data sources}
+#' @source \url{https://covid19datahub.io}
 #'
 #' @references 
-#' Guidotti, E., Ardia, D., (2020), "COVID-19 Data Hub", Working paper, \doi{10.13140/RG.2.2.11649.81763}.
+#' Guidotti, E., Ardia, D., (2020), "COVID-19 Data Hub", Journal of Open Source Software 5(51):2376, \doi{10.21105/joss.02376}.
 #'
 #' @note 
-#' We have invested a lot of time and effort in creating \href{https://covid19datahub.io}{COVID-19 Data Hub}. We expect you to agree to the following rules when using it:
+#' We have invested a lot of time and effort in creating \href{https://covid19datahub.io}{COVID-19 Data Hub}, please:
 #' 
 #' \itemize{
-#' \item cite Guidotti and Ardia (2020) in working papers and published papers that use \href{https://covid19datahub.io}{COVID-19 Data Hub}
-#' \item place the URL \url{https://covid19datahub.io} in a footnote to help others find \href{https://covid19datahub.io}{COVID-19 Data Hub}
-#' \item you assume full risk for the use of \href{https://covid19datahub.io}{COVID-19 Data Hub}
+#' \item cite \href{https://doi.org/10.21105/joss.02376}{Guidotti and Ardia (2020)} when using \href{https://covid19datahub.io}{COVID-19 Data Hub}.
+#' \item place the URL \url{https://covid19datahub.io} in a footnote to help others find \href{https://covid19datahub.io}{COVID-19 Data Hub}.
+#' \item you assume full risk for the use of \href{https://covid19datahub.io}{COVID-19 Data Hub}. 
+#' We try our best to guarantee the data quality and consistency and the continuous filling of the Data Hub. 
+#' However, it is free software and comes with ABSOLUTELY NO WARRANTY. 
+#' Reliance on \href{https://covid19datahub.io}{COVID-19 Data Hub} for medical guidance or use of \href{https://covid19datahub.io}{COVID-19 Data Hub} in commerce is strictly prohibited.
 #' }
 #' 
-#' The \href{https://covid19datahub.io}{COVID-19 Data Hub} (R package COVID19, GitHub repo, cloud storage), and its contents herein, including all data, mapping, and analyses, are provided to the public strictly for educational and academic research purposes. The \href{https://covid19datahub.io}{COVID-19 Data Hub} relies upon publicly available data from multiple sources. We are currently in the process of reconciling the providers with proper reference to their open-source data. Please inform us if you see any issues with the data licenses.
-#' 
-#' We try our best to guarantee the data quality and consistency and the continuous filling of the \href{https://covid19datahub.io}{COVID-19 Data Hub}. However, it is free software and comes with ABSOLUTELY NO WARRANTY. We hereby disclaim any and all representations and warranties with respect to the \href{https://covid19datahub.io}{COVID-19 Data Hub}, including accuracy, fitness for use, and merchantability. Reliance on the \href{https://covid19datahub.io}{COVID-19 Data Hub} for medical guidance or use of the \href{https://covid19datahub.io}{COVID-19 Data Hub} in commerce is strictly prohibited.
-#'
 #' @export
 #'
-covid19 <- function(ISO     = NULL,
+covid19 <- function(country = NULL,
                     level   = 1,
                     start   = "2019-01-01",
                     end     = Sys.Date(),
-                    vintage = FALSE,
                     raw     = FALSE,
+                    vintage = FALSE,
+                    verbose = TRUE,
                     cache   = TRUE){
 
   # fallback
@@ -75,77 +70,122 @@ covid19 <- function(ISO     = NULL,
          3: admin area level 3")
 
   # cache
-  cachekey <- make.names(sprintf("covid19_%s_%s_%s_%s",paste0(ISO, collapse = "."), level, ifelse(vintage, end, 0), raw))
-  if(cache & exists(cachekey, envir = cachedata))
-    return(get(cachekey, envir = cachedata) %>% dplyr::filter(date >= start & date <= end))
-
-  # bindings
-  iso_alpha_3 <- id <- date <- country <- state <- city <- confirmed <- tests <- deaths <- recovered <- hosp <- icu <- vent <- driving <- walking <- transit <- NULL
+  cachekey <- make.names(sprintf("covid19_%s_%s_%s_%s",paste0(country, collapse = "."), level, ifelse(vintage, end, 0), raw))
+  if(cache & exists(cachekey, envir = cachedata)){
+    x <- get(cachekey, envir = cachedata)    
+    return(x[x$date >= start & x$date <= end,])
+  }
 
   # data
   x <- data.frame()
-
-  # ISO code
-  iso <- db("ISO")
-  if(is.null(ISO))
-    ISO <- iso$iso_alpha_3
-
-  ISO <- toupper(ISO)
-  ISO <- sapply(ISO, function(i) iso$iso_alpha_3[which(iso$iso_alpha_2==i | iso$iso_alpha_3==i | iso$iso_numeric==i)])
-  ISO <- as.character(unique(ISO))
   
+  # ISO 
+  iso <- extdata("db","ISO.csv")
+  if(is.null(country)){
+    ISO <- iso$iso_alpha_3
+  }
+  else {
+    ISO <- sapply(toupper(country), function(i) iso$iso_alpha_3[which(iso$iso_alpha_2==i | iso$iso_alpha_3==i | iso$iso_numeric==i | toupper(iso$administrative_area_level_1)==i)])
+    ISO <- as.character(unique(ISO))  
+  }
+    
   if(length(ISO)==0)
     return(NULL)
 
   # vintage
   if(vintage){
-
-    if(end < "2020-04-14")
-      stop("vintage data not available before 2020-04-14")
-
-    file <- sprintf("https://storage.covid19datahub.io/%sdata-%s-%s.csv", ifelse(raw, 'raw', ''), level, format(as.Date(end),"%Y%m%d"))
-
-    x <- try(suppressWarnings(read.csv(file, cache = cache, colClasses = c("date" = "Date"))), silent = TRUE)
-
-    if("try-error" %in% class(x) | is.null(x))
-      stop(sprintf("vintage data not available on %s", end))
-
+    
+    url  <- "https://storage.covid19datahub.io"
+    name <- sprintf("%sdata-%s", ifelse(raw, 'raw', ''), level)
+    
+    # download
+    if(end == Sys.Date()){
+      
+      zip  <- sprintf("%s/%s.zip", url, name) 
+      file <- sprintf("%s.csv", name) 
+      
+      x   <- try(read.zip(zip, file, cache = cache)[[1]], silent = TRUE)
+      src <- try(read.csv(sprintf("%s/src.csv", url), cache = cache), silent = TRUE)
+      
+      if("try-error" %in% c(class(x),class(src)) | is.null(x) | is.null(src))
+        stop(sprintf("vintage data not available today", end))
+      
+    }
+    else {
+      
+      if(end < "2020-04-14")
+        stop("vintage data not available before 2020-04-14")
+    
+      zip          <- sprintf("%s/%s.zip", url, end)
+      files        <- c(paste0("data-",1:3,".csv"), paste0("rawdata-",1:3,".csv"), "src.csv")
+      names(files) <- gsub("\\.csv$", "", files)
+      
+      x <- try(read.zip(zip, files, cache = cache), silent = TRUE)
+    
+      if("try-error" %in% class(x) | is.null(x))
+        stop(sprintf("vintage data not available on %s", end))
+      
+      src <- x[["src"]]
+      x   <- x[[name]]
+      
+    }
+    
+    # filter
     if(length(ISO)>0)
-      x <- x %>%
-        dplyr::filter(sapply(strsplit(x$id,", "), function(x) x[[1]]) %in% ISO)
+      x <- dplyr::filter(x, iso_alpha_3 %in% ISO)
 
+    # check
     if(nrow(x)==0)
       return(NULL)
 
   }
+  # download 
   else {
 
-    # download 
-    w <- cachecall("world", level = level, cache = cache)
+    # world
+    w <- try(cachecall("world", level = level, cache = cache))
+    if("try-error" %in% class(w))
+      w <- NULL
     
-    for(fun in ISO){
-
-      y <- cachecall(fun, level = level, cache = cache)
-
-      if(!is.null(y)){
-        
-        if(level==1)
-          y <- drop(merge(y, w[w$iso_alpha_3==fun,], by = 'date', all = TRUE, suffixes = c('','.drop')))
-        
-        x <- y %>%
-          dplyr::mutate(iso_alpha_3 = fun) %>%
-          dplyr::bind_rows(x)
-        
-      }
+    # ISO
+    for(fun in ISO) if(exists(fun, envir = asNamespace("COVID19"), mode = "function", inherits = FALSE)) {
       
+      # try 
+      y <- try(cachecall(fun, level = level, cache = cache))
+      
+      # skip on failure
+      if(is.null(y) | ("try-error" %in% class(y)))
+        next
+
+      # top level
+      if(level==1){
+        
+        # merge fallback
+        if(!is.null(w)) if(length(idx <- which(w$iso_alpha_3==fun)))
+          y <- merge(y, w[idx,], by = 'date', all = TRUE)
+        
+        # iso as id
+        y$id <- fun
+
+      } 
+  
+      # add iso and bind data
+      x <- y %>%
+        dplyr::mutate(iso_alpha_3 = fun) %>%
+        dplyr::bind_rows(x)
+        
     }
 
+    # fallback 
     if(!is.null(w))
       x <- w %>%
         dplyr::filter(!(iso_alpha_3 %in% x$iso_alpha_3) & iso_alpha_3 %in% ISO) %>%
         dplyr::bind_rows(x)
 
-    # fallback
+    # filter
+    x <- x[!is.na(x$id),]
+    
+    # check
     if(nrow(x)==0){
       warning("
       Sorry, the data are not available. 
@@ -155,33 +195,37 @@ covid19 <- function(ISO     = NULL,
     }
         
     # stringency measures
-    o <- oxcgrt(cache = cache)
-    x <- drop(merge(x, o, by = c('date','iso_alpha_3'), all.x = TRUE, suffixes = c('','.drop')))
+    o <- try(cachecall('oxcgrt_git', cache = cache))
+    if(!("try-error" %in% class(o)))
+      x <- merge(x, o, by = c('date','iso_alpha_3'), all.x = TRUE)
     
     # subset
     key <- c('iso_alpha_3','id','date',vars('fast'))
     x[,key[!(key %in% colnames(x))]] <- NA
     x <- x[,key]
 
-    # check dates
-    if(any(is.na(x$date)))
-      stop("column 'date' contains NA values")
+    # 0 to NA
+    for(i in c('hosp','vent','icu'))
+      x[[i]] <- dplyr::na_if(x[[i]], 0)
+    
+    # check 
+    if(length(which(idx <- is.na(x$date))))
+      stop(sprintf("column 'date' contains NA values: %s", paste0(unique(x$iso_alpha_3[idx]), collapse = ", ")))
 
     # clean
     dates  <- seq(min(x$date), max(x$date), by = 1)
     if(!raw)
       x <- x %>%
 
-        dplyr::group_by(iso_alpha_3, id) %>%
+        dplyr::group_by(id) %>%
 
-        dplyr::group_map(keep = TRUE, function(x, ...){
+        dplyr::group_map(.keep = TRUE, function(x, ...){
 
           miss <- dates[!(dates %in% x$date)]
-
           if(length(miss)>0)
             x <- x %>%
               dplyr::bind_rows(data.frame(date = miss)) %>%
-              tidyr::fill(iso_alpha_3, id, .direction = "downup")
+              tidyr::fill(id, iso_alpha_3, .direction = "downup")
 
           return(x)
 
@@ -189,7 +233,7 @@ covid19 <- function(ISO     = NULL,
 
         dplyr::bind_rows() %>%
 
-        dplyr::group_by(iso_alpha_3, id) %>%
+        dplyr::group_by(id) %>%
 
         dplyr::arrange(date) %>%
 
@@ -197,108 +241,74 @@ covid19 <- function(ISO     = NULL,
 
         tidyr::replace_na(as.list(sapply(vars("fast"), function(x) 0)))
 
-    # group by country
-    if(level==1)
-      x$id <- NA
-
-    # aggregate
-    idx <- x %>%
-      
-      dplyr::group_by(iso_alpha_3, id, date) %>%
-      
-      dplyr::group_map(function(x,g){
-        
-        if(nrow(x)>1) return(g[[1]])
-      
-      }) %>%
-      
-      unlist() %>% 
-      
-      unique()
+    # check
+    if(length(idx <- which(duplicated(x[,c("id", "date")]))))
+      stop(sprintf("multiple dates per id: %s", paste0(unique(x$id[idx]), collapse = ", ")))
     
-    if(length(idx)>0){
-      
-      warning(sprintf("%s: data obtained by aggregating lower level data.", paste(idx, collapse = ", ")))
-      
-      # bindings
-      school_closing <- workplace_closing <- cancel_events <- transport_closing <- information_campaigns <- internal_movement_restrictions <- international_movement_restrictions <- testing_framework <- contact_tracing <- stringency_index <- NULL
-      
-      x <- x %>%
-        
-        dplyr::group_by(iso_alpha_3, id, date) %>%
-        
-        dplyr::summarize(confirmed = sum(confirmed),
-                         deaths    = sum(deaths),
-                         tests     = sum(tests),
-                         recovered = sum(recovered),
-                         hosp      = sum(hosp),
-                         icu       = sum(icu),
-                         vent      = sum(vent),
-                         
-                         school_closing        = max(school_closing),
-                         workplace_closing     = max(workplace_closing),
-                         cancel_events         = max(cancel_events),
-                         transport_closing     = max(transport_closing),
-                         information_campaigns = max(information_campaigns),
-                         
-                         internal_movement_restrictions      = max(internal_movement_restrictions),
-                         international_movement_restrictions = max(international_movement_restrictions),
-                         
-                         testing_framework     = max(testing_framework),
-                         contact_tracing       = max(contact_tracing),
-                         stringency_index      = max(stringency_index)) 
-      
-    }
-
-    # merge top level slow var
-    y <- db("ISO")
+    # merge top level data
+    y <- extdata("db","ISO.csv")
     if(level>1)
-      y <- y[,c("iso_alpha_3","country")]
+      y <- y[,c("iso_alpha_3","iso_alpha_2","iso_numeric","currency","administrative_area_level_1")]
     
-    x <- drop(merge(x, y, by = "iso_alpha_3", all.x = TRUE, suffixes = c('.drop','')))
+    x <- merge(x, y, by = "iso_alpha_3", all.x = TRUE)
 
-    # merge slow var
+    # merge lower level data
     if(level>1)
       x <- x %>%
 
         dplyr::group_by(iso_alpha_3) %>%
 
-        dplyr::group_map(keep = TRUE, function(x, iso){
+        dplyr::group_map(.keep = TRUE, function(x, iso){
           
-          y <- try(db(iso[[1]]), silent = TRUE)
-          if(class(y)!="try-error")
-            x <- drop(merge(x, y, by = "id", all.x = TRUE, suffixes = c('.drop','')))
+          y <- extdata("db", sprintf("%s.csv",iso[[1]]))
+          if(!is.null(y))
+            x <- merge(x, y[,!grepl("^id\\_", colnames(y))], by = "id", all.x = TRUE)
           
           return(x)
           
         }) %>%
 
         dplyr::bind_rows()
-
-    # unique id
-    x$id <- id(x$iso_alpha_3, x$id, esc = FALSE)
-
-    # subset
-    col <- vars()
-    x[,col[!(col %in% colnames(x))]] <- NA
-    x <- x[,col]
+    
+    # data source
+    src <- extdata("src.csv")
 
   }
-
+  
+  # severe
+  # idx <- which(is.na(x$severe) | x$severe==0)
+  # x$severe[idx] <- x$icu[idx] + x$vent[idx]
+  
+  # subset
+  cn <- colnames(x)
+  cn <- unique(c(vars(), "key", cn[grepl("^key\\_", cn)]))
+  x[,cn[!(cn %in% colnames(x))]] <- NA
+  x <- x[,cn]
+  
+  # type conversion
+  x <- x %>% 
+    dplyr::mutate_at('date', as.Date) %>%
+    dplyr::mutate_at(vars('integer'), as.integer) %>%
+    dplyr::mutate_at(vars('numeric'), as.numeric) %>%
+    dplyr::mutate_at(vars('character'), as.character)
+  
   # group and order
   x <- x %>%
     dplyr::group_by(id) %>%
     dplyr::arrange(id, date)
 
-  # warning
-  if(any(duplicated(x[,c('date','country','state','city')])))
-    warning("the tuple ('date','country','state','city') is not unique")
+  # check
+  if(any(duplicated(x[,c('date','administrative_area_level_1','administrative_area_level_2','administrative_area_level_3')])))
+    warning("the tuple ('date','administrative_area_level_1','administrative_area_level_2','administrative_area_level_3') is not unique")
 
+  # src
+  attr(x, "src") <- try(cite(x, src, verbose = verbose))
+  
   # cache
   if(cache)
     assign(cachekey, x, envir = cachedata)
 
   # return
-  return(x %>% dplyr::filter(date >= start & date <= end))
+  return(x[x$date >= start & x$date <= end,])
 
 }

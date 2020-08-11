@@ -1,0 +1,34 @@
+---
+title: "Julia"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Julia}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.02376/status.svg)](https://doi.org/10.21105/joss.02376)
+
+__GitHub__: https://github.com/covid19datahub/Julia
+
+## Import Data from the Hub
+
+Download the data from the [here](/articles/data.html).
+
+For parsing csv Julia [CSV](https://juliadata.github.io/CSV.jl/stable/) is used. Install it by typing into Julia console
+
+```julia
+using Pkg
+Pkg.add("CSV")
+```
+
+Once installed, fetch the data with
+
+```julia
+using CSV
+# download
+url = "https://storage.covid19datahub.io/data-1.csv"
+data = CSV.read(download(url))
+```
+
+`r gsub("^# ", "## ", readr::read_file('../../LICENSE.md'))`
